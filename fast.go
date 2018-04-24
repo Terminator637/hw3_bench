@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"hw3_bench/myPackage"
+	"strconv"
 )
 
 func FastSearch(out io.Writer) {
@@ -14,6 +15,7 @@ func FastSearch(out io.Writer) {
 	if err != nil {
 		panic(err)
 	}
+
 	user := &myPackage.User{}
 	foundUsers := ""
 	seenBrowsers := make(map[string]bool)
@@ -48,9 +50,9 @@ func FastSearch(out io.Writer) {
 		}
 
 		// log.Println("Android and MSIE user:", user["name"], user["email"])
-		foundUsers += fmt.Sprintf("[%d] %s <%s>\n", i, user.Name, strings.Replace(user.Email, "@", " [at] ", -1))
+		foundUsers += "[" + strconv.Itoa(i) + "] "+ user.Name+ " <"+user.Email+">\n"
 	}
 
-	fmt.Fprintln(out, "found users:\n"+foundUsers)
+	fmt.Fprintln(out, "found users:\n"+strings.Replace(foundUsers, "@", " [at] ", -1))
 	fmt.Fprintln(out, "Total unique browsers", len(seenBrowsers))
 }
