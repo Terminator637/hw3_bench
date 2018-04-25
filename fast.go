@@ -3,12 +3,17 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"coursera/hw3_bench/myPackage"
 	"fmt"
-	"hw3_bench/myPackage"
 	"io"
 	"os"
 	"strconv"
 	"strings"
+)
+
+const (
+	ANDROID = "Android"
+	MSIE    = "MSIE"
 )
 
 func FastSearch(out io.Writer) {
@@ -16,23 +21,25 @@ func FastSearch(out io.Writer) {
 	file, err := os.Open(filePath)
 	defer file.Close()
 
-	in := bufio.NewScanner(file)
+	r := bufio.NewScanner(file)
 
 	user := &myPackage.User{}
-	foundUsers := ""
-	seenBrowsers := make(map[string]bool)
-	var index int
+	seenBrowsers := make(map[string]bool, 200)
 
-	for in.Scan() {
+	byteAndroid := []byte(ANDROID)
+	byteMSIE := []byte(MSIE)
 
-		index++
-		row := in.Bytes()
+	fmt.Fprintln(out, "found users:")
 
-		if !bytes.Contains(row, []byte("Android")) && !bytes.Contains(row, []byte("MSIE")) {
+	for i := 0; r.Scan(); i++ {
+
+		line := r.Bytes()
+
+		if !(bytes.Contains(line, byteAndroid) || bytes.Contains(line, byteMSIE)) {
 			continue
 		}
 
-		err = user.UnmarshalJSON(row)
+		err = user.UnmarshalJSON(line)
 		if err != nil {
 			panic(err)
 		}
@@ -43,9 +50,9 @@ func FastSearch(out io.Writer) {
 		for _, browser := range user.Browsers {
 
 			switch {
-			case strings.Contains(browser, "Android"):
+			case strings.Contains(browser, ANDROID):
 				isAndroid = true
-			case strings.Contains(browser, "MSIE"):
+			case strings.Contains(browser, MSIE):
 				isMSIE = true
 			default:
 				continue
@@ -58,9 +65,9 @@ func FastSearch(out io.Writer) {
 			continue
 		}
 
-		foundUsers += "[" + strconv.Itoa(index-1) + "] " + user.Name + " <" + user.Email + ">\n"
+		email := strings.Replace(user.Email, "@", " [at] ", -1)
+		fmt.Fprintln(out, "["+strconv.Itoa(i)+"] "+user.Name+" <"+email+">")
 	}
 
-	fmt.Fprintln(out, "found users:\n"+strings.Replace(foundUsers, "@", " [at] ", -1))
-	fmt.Fprintln(out, "Total unique browsers", len(seenBrowsers))
+	fmt.Fprintln(out, "\nTotal unique browsers", len(seenBrowsers))
 }

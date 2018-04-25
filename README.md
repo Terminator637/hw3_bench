@@ -4,5 +4,6 @@
 
 Задание выполнено. Результат бенчмарка:
 ```
-BenchmarkFast-4              500           4100921 ns/op          477563 B/op       3653 allocs/op
+BenchmarkSlow-4               10         112224361 ns/op        320462801 B/op    284142 allocs/op
+BenchmarkFast-4             1000           2518339 ns/op          298974 B/op       3889 allocs/op
 ```
