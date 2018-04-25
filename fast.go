@@ -1,30 +1,38 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"strings"
 	"hw3_bench/myPackage"
+	"io"
+	"os"
 	"strconv"
+	"strings"
 )
 
 func FastSearch(out io.Writer) {
-	fileContents, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		panic(err)
-	}
+
+	file, err := os.Open(filePath)
+	defer file.Close()
+
+	in := bufio.NewScanner(file)
 
 	user := &myPackage.User{}
 	foundUsers := ""
 	seenBrowsers := make(map[string]bool)
-	for i, line := range bytes.Split(fileContents, []byte("\n")) {
-		if !bytes.Contains(line, []byte("Android")) && !bytes.Contains(line, []byte("MSIE")) {
+	var index int
+
+	for in.Scan() {
+
+		index++
+		row := in.Bytes()
+
+		if !bytes.Contains(row, []byte("Android")) && !bytes.Contains(row, []byte("MSIE")) {
 			continue
 		}
-		// fmt.Printf("%v %v\n", err, line)
-		err = user.UnmarshalJSON(line)
+
+		err = user.UnmarshalJSON(row)
 		if err != nil {
 			panic(err)
 		}
@@ -42,6 +50,7 @@ func FastSearch(out io.Writer) {
 			default:
 				continue
 			}
+
 			seenBrowsers[browser] = true
 		}
 
@@ -49,8 +58,7 @@ func FastSearch(out io.Writer) {
 			continue
 		}
 
-		// log.Println("Android and MSIE user:", user["name"], user["email"])
-		foundUsers += "[" + strconv.Itoa(i) + "] "+ user.Name+ " <"+user.Email+">\n"
+		foundUsers += "[" + strconv.Itoa(index-1) + "] " + user.Name + " <" + user.Email + ">\n"
 	}
 
 	fmt.Fprintln(out, "found users:\n"+strings.Replace(foundUsers, "@", " [at] ", -1))
